@@ -39,6 +39,10 @@ class Gitee extends GitServer {
   searchRepositories(params){
     return this.get('/search/repositories', params)
   }
+
+  getTags(fullname) {
+    return this.get(`/repos/${fullname}/tags`)
+  }
 }
 
 export default Gitee

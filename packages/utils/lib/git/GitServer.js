@@ -50,7 +50,12 @@ class GitServer {
   }
 
   savePlatform(platform) {
+    this.platform = platform;
     fs.writeFileSync(createPlatformPath(), platform);
+  }
+
+  getPlatform(){
+    return this.platform;
   }
 }
 
