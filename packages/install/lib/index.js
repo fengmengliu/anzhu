@@ -1,4 +1,5 @@
 import Command from "@anzhu.com/command";
+import ora from 'ora';
 import {
   Github,
   Gitee,
@@ -6,6 +7,7 @@ import {
   makeList,
   getGitPlatform,
   log,
+  printErrorMessage
 } from "@anzhu.com/utils";
 
 const NEXP_PAGE = "${next_page}";
@@ -24,14 +26,21 @@ class InstallCommand extends Command {
 
   get options() {}
 
+  /** 
+   * 脚手架命令输入完成后的处理函数
+   */
   async action() {
     await this.generateGitAPI();
     await this.searchGitAPI();
     await this.selectTags();
+    await this.downloadRepo();
     log.verbose('full_name', this.keyword);
     log.verbose('selected_tag', this.selectedTag);
   }
 
+  /**
+   * 初始化git下载器，交互选择github或gitee平台
+   */
   async generateGitAPI() {
     let platform = getGitPlatform();
     if (!platform) {
@@ -61,6 +70,9 @@ class InstallCommand extends Command {
     this.gitAPI = gitAPI;
   }
 
+  /** 
+   * 交互选择搜索关键词（项目名称）
+   */
   async searchGitAPI() {
     const platform = this.gitAPI.getPlatform();
     if (platform === "github") {
@@ -99,6 +111,9 @@ class InstallCommand extends Command {
     await this.doSearch();
   }
 
+  /**
+   * 调用git api查询仓库列表，支持分页查询，同时提供交互选择仓库功能
+   */
   async doSearch() {
     const platform = this.gitAPI.getPlatform();
     let searchResult;
@@ -192,23 +207,34 @@ class InstallCommand extends Command {
     }
   }
 
+  /** 
+   * 仓库列表下一页处理函数 
+   */
   async nextPage() {
     this.page++;
     await this.doSearch();
   }
 
+  /** 
+   * 仓库列表上一页处理函数 
+   */
   async prevPage() {
     this.page--;
     await this.doSearch();
   }
 
+  /** 
+   * 获取tag列表
+   */
   async selectTags() {
-    let tagList;
     this.tagPage = 1;
     this.tagPerPage = 10;
-    tagList = await this.doSelectTags();
+    await this.doSelectTags();
   }
 
+  /**
+   * 调用api分页获取tags列表（gitee没有分页），并可交互选择tag
+   */
   async doSelectTags() {
     const platform = this.gitAPI.getPlatform();
     let tagListChoices = [];
@@ -262,14 +288,35 @@ class InstallCommand extends Command {
     }
   }
 
+  /** 
+   * tag列表上一页处理函数 
+   */
   async nextTags() {
     this.tagPage++;
     await this.doSelectTags();
   }
 
+  /** 
+   * tag列表下一页处理函数 
+   */
   async prevTags() {
     this.tagPage--;
     await this.doSelectTags();
+  }
+
+  /**
+   * 下载仓库代码
+   */
+  async downloadRepo(){
+    const spinner = ora(`正在下载：${this.keyword}(${this.selectedTag})`).start()
+    try {
+      await this.gitAPI.cloneRepo(this.keyword, this.selectedTag)
+      spinner.stop()
+      log.success('下载成功')
+    } catch (error) {
+      spinner.stop()
+      printErrorMessage(error)
+    }
   }
 
   preAction() {

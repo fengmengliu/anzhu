@@ -3,6 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { pathExistsSync } from "path-exists";
 import fse from "fs-extra";
+import { execa } from "execa";
 import { makePassword } from "../inquirer.js";
 import log from "../log.js";
 
@@ -31,7 +32,7 @@ class GitServer {
   async init() {
     // 判断token是否录入
     const tokenPath = createTokenPath();
-    console.log("tokenTath:", tokenPath);
+    // console.log("tokenTath:", tokenPath);
     if (pathExistsSync(tokenPath)) {
       this.token = fse.readFileSync(tokenPath).toString();
     } else {
@@ -54,8 +55,19 @@ class GitServer {
     fs.writeFileSync(createPlatformPath(), platform);
   }
 
-  getPlatform(){
+  getPlatform() {
     return this.platform;
+  }
+
+  /**
+   * 命令行执行git clone操作
+   */
+  cloneRepo(fullName, tag) {
+    if (tag) {
+      return execa("git", ["clone", this.getRepoUrl(fullName), "-b", tag]);
+    } else {
+      return execa("git", ["clone", this.getRepoUrl(fullName)]);
+    }
   }
 }
 
