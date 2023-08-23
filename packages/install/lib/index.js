@@ -33,9 +33,11 @@ class InstallCommand extends Command {
     await this.generateGitAPI();
     await this.searchGitAPI();
     await this.selectTags();
-    await this.downloadRepo();
     log.verbose('full_name', this.keyword);
     log.verbose('selected_tag', this.selectedTag);
+    await this.downloadRepo();
+    await this.installDependencies();
+    await this.startProject();
   }
 
   /**
@@ -155,7 +157,7 @@ class InstallCommand extends Command {
         q: this.q,
         order: "desc",
         per_page: this.perPage,
-        sort: "stars_count",
+        // sort: "stars_count",
         page: this.page,
       };
       if (this.language) {
@@ -317,6 +319,32 @@ class InstallCommand extends Command {
       spinner.stop()
       printErrorMessage(error)
     }
+  }
+
+  /**
+   * 安装项目依赖
+   */
+  async installDependencies(){
+    const spinner = ora(`正在安装依赖：${this.keyword}(${this.selectedTag})`).start()
+    try {
+      const result = await this.gitAPI.installDependencies(process.cwd(), this.keyword, this.selectedTag)
+      spinner.stop()
+      if(!result){
+        log.error(`依赖安装失败：${this.keyword}(${this.selectedTag})`)
+      } else {
+        log.success(`依赖安装成功：${this.keyword}(${this.selectedTag})`)
+      }
+    } catch (error) {
+      spinner.stop()
+      printErrorMessage(error)
+    }
+  }
+
+  /**
+   * 启动项目
+   */
+  async startProject(){
+    await this.gitAPI.startProject(process.cwd(), this.keyword);
   }
 
   preAction() {

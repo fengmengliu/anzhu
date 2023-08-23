@@ -26,6 +26,26 @@ function getGitPlatform() {
   return null;
 }
 
+/**
+ * 获取项目路径
+ */
+function getProjectPath(cwd, fullName){
+  const projectName = fullName.split('/')[1];
+  return path.resolve(cwd, projectName)
+}
+
+/**
+ * 获取package.json文件内容
+ */
+function getPackageJson(cwd, fullName) {
+  const projectPath = getProjectPath(cwd, fullName);
+  const pkgPath = path.resolve(projectPath, 'package.json');
+  if(pkgPath){
+    return fse.readJsonSync(pkgPath)
+  }
+  return null
+}
+
 class GitServer {
   constructor() {}
 
@@ -67,6 +87,32 @@ class GitServer {
       return execa("git", ["clone", this.getRepoUrl(fullName), "-b", tag]);
     } else {
       return execa("git", ["clone", this.getRepoUrl(fullName)]);
+    }
+  }
+
+  installDependencies(cwd, fullName) {
+    const projectPath = getProjectPath(cwd, fullName)
+    if(pathExistsSync(projectPath)){
+      return execa('npm', ['install', '--registry=https://registry.npmmirror.com'], { cwd: projectPath }) // 指定下载依赖目录为projectPath目录
+    }
+  }
+
+  async startProject(cwd, fullName) {
+    const projectPath = getProjectPath(cwd, fullName)
+    const pkg = getPackageJson(cwd, fullName)
+    if(pkg){
+      const { scripts, bin, name } = pkg;
+      // 自动安装bin文件
+      if(bin){
+        await execa('npm', ['install', '-g', name, '--registry=https://registry.npmmirror.com'], { cwd: projectPath })
+      }
+      if(scripts && scripts.dev){
+        return execa('npm', ['run', 'dev'], { cwd: projectPath, stdout: 'inherit' })
+      } else if(scripts && scripts.start){
+        return execa('npm', ['run', 'start'], { cwd: projectPath, stdout: 'inherit' })
+      } else {
+        log.warn('未找到启动命令')
+      }
     }
   }
 }
