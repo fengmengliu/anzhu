@@ -1,0 +1,37 @@
+{
+  "name": "@anzhu.com/lint",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "fengmengliu <kllfm@sina.com>",
+  "homepage": "https://github.com/fengmengliu/anzhu-cli#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fengmengliu/anzhu-cli.git"
+  },
+  "scripts": {
+    "test": "node ./__tests__/lint.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/fengmengliu/anzhu-cli/issues"
+  },
+  "type": "module",
+  "dependencies": {
+    "@anzhu.com/command": "^0.0.0",
+    "@anzhu.com/utils": "^0.0.0",
+    "eslint": "^8.48.0",
+    "execa": "^8.0.1",
+    "ora": "^7.0.1"
+  }
+}

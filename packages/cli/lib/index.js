@@ -1,5 +1,6 @@
 import createInitCommand from "@anzhu.com/init";
-import InstallCommand from '@anzhu.com/install'
+import createInstallCommand from '@anzhu.com/install'
+import createLintCommand from '@anzhu.com/lint'
 import createCLI from "./createCLI.js"; 
 
 import './exception.js'
@@ -15,7 +16,8 @@ export default function (args) {
   //       console.log("init", name, opts);
   //     });
   createInitCommand(program); 
-  InstallCommand(program);
+  createInstallCommand(program);
+  createLintCommand(program)
 
   program.parse(process.argv);
 }
