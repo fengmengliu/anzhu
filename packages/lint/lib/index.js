@@ -1,8 +1,11 @@
+import path from 'node:path'
 import Command from "@anzhu.com/command";
 import { log, printErrorMessage } from "@anzhu.com/utils";
 import { ESLint } from "eslint";
 import { execa } from 'execa';
 import ora from "ora";
+import jest from "jest";
+import Mocha from 'mocha';
 import vueConfig from "./eslint/vueConfig.js";
 
 class LintCommand extends Command {
@@ -71,6 +74,16 @@ class LintCommand extends Command {
     log.verbose('eslintResult', eslintResult)
     log.success('eslint检查完毕', '错误：' + eslintResult.errors, '警告：' + eslintResult.warnings)
     // 2.jest/mocha
+    log.info('自动执行jest测试');
+    await jest.run('test')
+    log.info('jest测试执行完毕');
+    // 3.mocha
+    log.info('自动执行mocha测试')
+    const mochaInstance = new Mocha()
+    mochaInstance.addFile(path.resolve(cwd, '__tests__/mocha_test.js')) // 需要扩展，可以测试整个测试目录
+    mochaInstance.run(() => {
+      log.info('mocha测试执行完毕');
+    });
   }
   preAction() {
     // console.log('pre');
